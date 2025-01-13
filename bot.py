@@ -13,10 +13,13 @@ bot = commands.Bot(command_prefix="!", intents=intents) # prefix is deprecated -
 
 __CONNECTION_FAILED_RESPONSE = "Failed to connect to printer!"
 def ensure_connection():
-    if bambu.is_connected():
-        return True
-    if bambu.try_reconnect():
-        return True
+    try:
+        if bambu.is_connected():
+            return True
+        if bambu.try_reconnect():
+            return True
+    except Exception as e:
+        print(f"Failed to ensure connection: {e}")
     return False
 
 @bot.event
@@ -38,8 +41,8 @@ async def status(interaction: discord.Interaction):
     if not ensure_connection():
         await interaction.response.send_message(__CONNECTION_FAILED_RESPONSE)
         return
-
     await interaction.response.defer()  # Defer the response to avoid timeout
+
     try:
         status = await bambu.get_status()
         await interaction.followup.send(f"The printer is currently{"" if status.online else " not" } printing!")

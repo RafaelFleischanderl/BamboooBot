@@ -16,6 +16,7 @@ class Bambu:
         try:
             self.__bambu_client = BambuClient(self.__hostname, self.__access_code, self.__serial_number)
             self.__is_connected_to_printer = True
+            self.__start_watch_client()
         except Exception as e:
             print(f"Failed to connect to bambu printer")
             self.__is_connected_to_printer = False
@@ -24,7 +25,7 @@ class Bambu:
     def is_connected(self):
         return self.__is_connected_to_printer
 
-    def start_watch_client(self):
+    def __start_watch_client(self):
         self.__bambu_client.start_watch_client(self.__on_watch_client_trigger,self.__on_watch_client_connect)
         self.__capture_next_status = True
         self.__latest_status = None
