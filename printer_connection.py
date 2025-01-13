@@ -20,34 +20,26 @@ class Bambu:
             print(f"Failed to connect to bambu printer")
             self.__is_connected_to_printer = False
 
-
-
     def is_connected(self):
         return self.__is_connected_to_printer
 
     def __start_watch_client(self):
         self.__bambu_client.start_watch_client(self.__on_watch_client_trigger,self.__on_watch_client_connect)
-        self.__capture_next_status = True
-        self.__latest_status = None
+        self.__status_future = None  # for status to transform callback of BambuClient into awaitable Promise
 
     def __on_watch_client_trigger(self, msg : PrinterStatus):
-        if self.__capture_next_status:
-            self.__capture_next_status = False
-            self.__latest_status = msg
+        if self.__status_future and not self.__status_future.done():
+            self.__status_future.set_result(msg)
 
     def __on_watch_client_connect(self):
         print("Watch client connected to printer")
 
     async def get_status(self):
-
-        self.__capture_next_status = True
-        while self.__latest_status is None:
-            await asyncio.sleep(0.1)
-        copy = self.__latest_status
-        self.__latest_status = None
-        self.__capture_next_status = False
-        print(copy)
-        return copy
+        self.__status_future = asyncio.Future()
+        status = await self.__status_future
+        self.__status_future = None
+        # print(status)
+        return status
 
     def get_camera_frame(self):
         return self.__bambu_client.capture_camera_frame()

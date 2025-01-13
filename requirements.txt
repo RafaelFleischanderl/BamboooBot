@@ -1,3 +1,4 @@
-bambu-connect~=0.3.1
+# bambu-connect~=0.3.1
+git+https://github.com/RafaelFleischanderl/bambu-connect@main
 discord.py~=2.4.0
 python-dotenv~=1.0.1
