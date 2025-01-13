@@ -6,20 +6,20 @@ from discord.ext import commands
 from io import BytesIO
 
 load_dotenv()
-bambu = Bambu()
+ip = os.getenv('PRINTER_IP')
+access_code = os.getenv('PRINTER_ACCESS_CODE')
+serial_number = os.getenv('PRINTER_SERIAL_NUMBER')
+bambu = Bambu(ip,access_code,serial_number)
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents) # prefix is deprecated - only slash commands are supported by discord
 
 __CONNECTION_FAILED_RESPONSE = "Failed to connect to printer!"
 def ensure_connection():
-    try:
-        if bambu.is_connected():
-            return True
-        if bambu.try_reconnect():
-            return True
-    except Exception as e:
-        print(f"Failed to ensure connection: {e}")
+    if bambu.is_connected():
+        return True
+    if bambu.try_reconnect():
+        return True
     return False
 
 @bot.event
@@ -38,10 +38,11 @@ async def on_ready():
 
 @bot.tree.command(name="status", description="Get the current printer status!")
 async def status(interaction: discord.Interaction):
-    if not ensure_connection():
-        await interaction.response.send_message(__CONNECTION_FAILED_RESPONSE)
-        return
     await interaction.response.defer()  # Defer the response to avoid timeout
+
+    if not ensure_connection():
+        await interaction.followup.send(content= __CONNECTION_FAILED_RESPONSE)
+        return
 
     try:
         status = await bambu.get_status()
@@ -51,11 +52,12 @@ async def status(interaction: discord.Interaction):
 
 @bot.tree.command(name="cam", description="Get a realtime screenshot of the current print!")
 async def cam(interaction: discord.Interaction):
+    await interaction.response.defer()  # Defer the response to avoid timeout
+
     if not ensure_connection():
-        await interaction.response.send_message(__CONNECTION_FAILED_RESPONSE)
+        await interaction.followup.send(content= __CONNECTION_FAILED_RESPONSE)
         return
 
-    await interaction.response.defer()  # Defer the response to avoid timeout
     try:
         frame = bambu.get_camera_frame()
         image_bytes = BytesIO(frame)

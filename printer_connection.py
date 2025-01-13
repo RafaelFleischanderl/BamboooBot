@@ -1,4 +1,3 @@
-import os
 from bambu_connect import BambuClient, PrinterStatus
 import time
 import asyncio
@@ -6,10 +5,10 @@ import asyncio
 
 class Bambu:
 
-    def __init__(self):
-        self.__hostname = os.getenv('PRINTER_IP')
-        self.__access_code = os.getenv('PRINTER_ACCESS_CODE')
-        self.__serial_number = os.getenv('PRINTER_SERIAL_NUMBER')
+    def __init__(self, ip, access_code, serial_number):
+        self.__hostname = ip
+        self.__access_code = access_code
+        self.__serial_number = serial_number
         self.__is_connected_to_printer = False
 
     def try_reconnect(self):
@@ -20,7 +19,8 @@ class Bambu:
         except Exception as e:
             print(f"Failed to connect to bambu printer")
             self.__is_connected_to_printer = False
-        return self.__is_connected_to_printer
+
+
 
     def is_connected(self):
         return self.__is_connected_to_printer
